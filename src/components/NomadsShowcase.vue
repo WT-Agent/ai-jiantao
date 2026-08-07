@@ -2,10 +2,10 @@
   <section class="nomads-showcase-section">
     <div class="showcase-header">
       <div class="header-left">
-        <h2 class="showcase-title">深刻检讨书与反思模版库 (Nomads Showcase)</h2>
-        <p class="showcase-subtitle">精选常见失误场景与反思模版，点击“一键套用”快速生成合规诚恳文案</p>
+        <h2 class="showcase-title">实战案例与模板库 (Nomads Showcase)</h2>
+        <p class="showcase-subtitle">精选高频实战场景，点击“一键套用”快速生成高质量结果</p>
       </div>
-      <span class="showcase-badge">已收录 {{ showcaseItems.length }} 个实战模版</span>
+      <span class="showcase-badge">已收录 {{ showcaseItems.length }} 个实战模板</span>
     </div>
 
     <div class="showcase-grid">
@@ -21,9 +21,6 @@
 
         <div class="card-content">
           <h3 class="item-title">{{ item.title }}</h3>
-          <p class="item-meta">
-            对象: {{ item.reviewTarget }} · 规格: {{ item.wordCount }}
-          </p>
           <p class="item-prompt">“{{ item.prompt }}”</p>
         </div>
 
@@ -42,97 +39,121 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed } from 'vue';
+
+const props = defineProps<{
+  appTitle?: string;
+  isImage?: boolean;
+}>();
+
+const emit = defineEmits<{
+  (e: 'apply-template', payload: { prompt: string; style?: string }): void;
+}>();
 
 export interface ShowcaseItem {
   id: string;
   tag: string;
   title: string;
-  reviewType: string;
-  reviewTarget: string;
-  wordCount: string;
   prompt: string;
+  style?: string;
   usageCount: string;
 }
 
-const emit = defineEmits<{
-  (e: 'apply-template', payload: { 
-    prompt: string; 
-    reviewType?: string; 
-    reviewTarget?: string; 
-    wordCount?: string; 
-  }): void;
-}>();
-
-const showcaseItems = ref<ShowcaseItem[]>([
-  {
-    id: 'jiantao-1',
-    tag: '职场履职失误',
-    title: '重大工作项目失误与补救检讨',
-    reviewType: '职场工作失误与履职尽责检讨',
-    reviewTarget: '单位领导主管',
-    wordCount: '1000字标准版',
-    prompt: '在季度关键项目中因审核不严导致预算数据偏差，请帮我撰写一份向部门总监深刻检讨的文案，重点剖析粗心与流程防范失堵。',
-    usageCount: '38.2k'
-  },
-  {
-    id: 'jiantao-2',
-    tag: '校园纪律反思',
-    title: '课堂玩手机与纪律违规检讨',
-    reviewType: '学校学生违纪与课堂纪律反思',
-    reviewTarget: '学校老师班主任',
-    wordCount: '1000字标准版',
-    prompt: '在自习课上偷玩手机被班主任没收，请撰写一份给班主任的深刻检讨书，剖析自控力差与对学习不负责的思想根源。',
-    usageCount: '42.5k'
-  },
-  {
-    id: 'jiantao-3',
-    tag: '家庭情感沟通',
-    title: '吵架失言后向伴侣真诚道歉信',
-    reviewType: '夫妻与情侣家庭沟通失误致歉',
-    reviewTarget: '伴侣长辈',
-    wordCount: '500字精简版',
-    prompt: '因为工作压力大在沟通中对伴侣态度冷漠并说了伤人的话，撰写一份真挚诚恳的致歉信，表达愧疚并提出具体的情感沟通改善承诺。',
-    usageCount: '29.8k'
-  },
-  {
-    id: 'jiantao-4',
-    tag: '考勤与作风',
-    title: '多次迟到早退与考勤纪律检讨',
-    reviewType: '职场工作失误与履职尽责检讨',
-    reviewTarget: '单位领导主管',
-    wordCount: '500字精简版',
-    prompt: '本月因个人时间规划不当导致连续三次上班迟到，向团队主管提交一份考勤违规检讨书，承诺严守作风纪律。',
-    usageCount: '31.4k'
-  },
-  {
-    id: 'jiantao-5',
-    tag: '秩序规章维护',
-    title: '驾驶违章与公共秩序承诺检讨',
-    reviewType: '驾驶违章与公共秩序维护检讨',
-    reviewTarget: '公职监管部门',
-    wordCount: '1000字标准版',
-    prompt: '因交通违章被执法部门处罚，撰写一份向交通监管部门的遵守秩序检讨与文明驾驶承诺书。',
-    usageCount: '18.9k'
-  },
-  {
-    id: 'jiantao-6',
-    tag: '管理尽职反思',
-    title: '团队管理失职与下属失误连带检讨',
-    reviewType: '职场工作失误与履职尽责检讨',
-    reviewTarget: '单位领导主管',
-    wordCount: '2000字深刻版',
-    prompt: '作为项目负责人，因对下属业务把关不严导致交期延误，向公司高层提交一份深刻的履职尽责与团队管理反思报告。',
-    usageCount: '25.6k'
+// 模拟实战案例数据库（支持根据文本/图像类及应用主题切换）
+const showcaseItems = computed<ShowcaseItem[]>(() => {
+  if (props.isImage) {
+    return [
+      {
+        id: 'img-1',
+        tag: '写真肖像',
+        title: '商务精英形象照',
+        prompt: '高端写字楼背景，身穿深蓝色西装，眼神自信专注，赛博朋克光影效果',
+        style: '<photography>',
+        usageCount: '18.5k'
+      },
+      {
+        id: 'img-2',
+        tag: '概念插画',
+        title: '未来科幻城市海报',
+        prompt: '霓虹灯光的赛博朋克立体城市，飞行汽车，高品质概念插画，8k分辨率',
+        style: '<illustration>',
+        usageCount: '24.1k'
+      },
+      {
+        id: 'img-3',
+        tag: '二次元动漫',
+        title: '日系国潮动漫角色',
+        prompt: '穿着现代汉服的国风少年，手持纸伞，水彩漫感，唯美光感与柔光滤镜',
+        style: '<anime>',
+        usageCount: '15.9k'
+      },
+      {
+        id: 'img-4',
+        tag: '水彩艺术',
+        title: '治愈系自然风景画',
+        prompt: '晨雾中的森林湖泊，阳光穿透树林，水彩渐变质感，温馨治愈风格',
+        style: '<watercolor>',
+        usageCount: '12.3k'
+      }
+    ];
+  } else {
+    return [
+      {
+        id: 'text-1',
+        tag: '职场总结',
+        title: '周报 OKR 成果提炼',
+        prompt: '本周完成了核心模块优化与线上异常排查，请帮我梳理为具备量化指标的 OKR 汇报文案',
+        style: '专业干练，结果导向',
+        usageCount: '32.8k'
+      },
+      {
+        id: 'text-2',
+        tag: '高情商沟通',
+        title: '拒绝不合理加班话术',
+        prompt: '领导在周末突然布置非紧急任务，如何高情商、委婉且有理有据地推迟到工作日处理？',
+        style: '高情商，委婉，有情调',
+        usageCount: '28.4k'
+      },
+      {
+        id: 'text-3',
+        tag: '短视频文案',
+        title: '知识干货吸睛开头',
+        prompt: '准备制作一条关于高效学习法的短视频，设计 3 个能在前 3 秒留住用户的爆款口播开头',
+        style: '专业干练，结果导向',
+        usageCount: '45.1k'
+      },
+      {
+        id: 'text-4',
+        tag: '商务公文',
+        title: '跨部门协同申请函',
+        prompt: '因项目上线需要研发部门配合联调，撰写一份正式、严谨且明确时间节点的协同申请书',
+        style: '专业干练，结果导向',
+        usageCount: '19.7k'
+      },
+      {
+        id: 'text-5',
+        tag: '小红书种草',
+        title: '实战干货笔记排版',
+        prompt: '分享 5 个提升日常工作效率的文字工具，语言亲切，搭配吸引人的标题与 Emoji 排版',
+        style: '高情商，委婉，有情调',
+        usageCount: '36.2k'
+      },
+      {
+        id: 'text-6',
+        tag: '学术润色',
+        title: '论文摘要与结论重构',
+        prompt: '将以下粗糙的研究结论重写为学术规范、逻辑严密且无语法语病的论文摘要总结',
+        style: '专业干练，结果导向',
+        usageCount: '22.0k'
+      }
+    ];
   }
-]);
+});
 
 function applyTemplate(item: ShowcaseItem) {
   emit('apply-template', {
     prompt: item.prompt,
-    reviewType: item.reviewType,
-    reviewTarget: item.reviewTarget,
-    wordCount: item.wordCount
+    style: item.style
   });
 }
 </script>
@@ -244,12 +265,6 @@ function applyTemplate(item: ShowcaseItem) {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 0.3rem;
-}
-
-.item-meta {
-  font-size: 0.75rem;
-  color: #a5b4fc;
   margin-bottom: 0.4rem;
 }
 

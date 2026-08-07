@@ -4,110 +4,46 @@
     <div v-if="copied" class="top-success-toast">
       复制成功
     </div>
-    <!-- 常驻悬浮分享按钮 (H5 / 移动端与桌面端通用) -->
-    <button class="floating-share-btn" @click="showShareGuide = true">
-      <svg class="share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="18" cy="5" r="3"></circle>
-        <circle cx="6" cy="12" r="3"></circle>
-        <circle cx="18" cy="19" r="3"></circle>
-        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-      </svg>
-      <span>分享检讨专家</span>
-    </button>
-
     <header>
       <h1>{{ appTitle }}</h1>
-      <p>客观陈述失误 · 思想根源剖析 · 实操整改措施 · 诚恳监督表态</p>
+      <p>智能 AI 实战引擎 · 解决高效生产力需求</p>
     </header>
 
-    <!-- 动态广播轮播 -->
+    <!-- 活跃动态 -->
     <UserTicker />
 
-    <!-- 核心操作区卡片 -->
+    <!-- 核心卡片 -->
     <main ref="inputCardRef" class="glass-card input-group">
-      <!-- 4 种预设类型选择 -->
       <div class="selector-group">
-        <label class="selector-label">选择检讨与反思类型</label>
+        <label class="selector-label">输入您要生成的内容或要求</label>
+        <textarea 
+          v-model="userInput" 
+          placeholder="比如：帮我写一段表达工作辛苦但充满希望的总结..."
+        ></textarea>
+      </div>
+
+      <div class="selector-group">
+        <label class="selector-label">选择生成风格</label>
         <div class="style-selector">
           <button 
-            v-for="rtype in reviewTypeOptions" 
-            :key="rtype"
+            v-for="style in styleOptions" 
+            :key="style.value"
             class="style-option"
-            :class="{ active: activeReviewType === rtype }"
-            @click="activeReviewType = rtype"
+            :class="{ active: activeStyle === style.value }"
+            @click="activeStyle = style.value"
           >
-            {{ rtype }}
+            {{ style.label }}
           </button>
         </div>
       </div>
 
-      <!-- 检讨对象与字数规格 2 组属性 -->
-      <div class="options-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-        <div class="selector-group">
-          <label class="selector-label">检讨致歉对象</label>
-          <div class="style-selector">
-            <button 
-              v-for="target in reviewTargetOptions" 
-              :key="target"
-              class="style-option"
-              :class="{ active: selectedReviewTarget === target }"
-              @click="selectedReviewTarget = target"
-            >
-              {{ target }}
-            </button>
-          </div>
-        </div>
-
-        <div class="selector-group">
-          <label class="selector-label">字数与详略规格</label>
-          <div class="style-selector">
-            <button 
-              v-for="wcount in wordCountOptions" 
-              :key="wcount"
-              class="style-option"
-              :class="{ active: selectedWordCount === wcount }"
-              @click="selectedWordCount = wcount"
-            >
-              {{ wcount }}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 输入框 -->
-      <div class="selector-group">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <label class="selector-label">描述失误经过、背景及主要责任</label>
-          <div style="display: flex; gap: 0.5rem;">
-            <button v-if="userInput" class="text-link-btn" @click="userInput = ''">清空输入</button>
-            <button class="text-link-btn" @click="showReviewTipsModal = true">撰写逻辑与语气指南</button>
-          </div>
-        </div>
-        <textarea 
-          v-model="userInput" 
-          placeholder="请简要描述事情发生过程与失误要点...（例如：在项目发版过程中未按SOP操作，导致测试环境数据库误擦除，影响了部门联调进度，已紧急回滚恢复，现诚恳检讨。）"
-          style="min-height: 120px;"
-        ></textarea>
-        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary);">
-          <span>字符数: {{ userInput.length }} 字</span>
-          <span>建议清晰列明失误事实、不良影响及已有初步补救手段</span>
-        </div>
-      </div>
-
-      <!-- 操作按钮区 -->
-      <div style="display: flex; gap: 0.75rem;">
-        <button 
-          class="action-btn" 
-          :disabled="loading || !userInput.trim()"
-          @click="handleGenerate"
-        >
-          {{ loading ? '正在深入剖析思想根源与生成深刻检讨中...' : '开始生成深刻检讨书与反思报告' }}
-        </button>
-        <button class="icon-btn" style="padding: 0 1rem; border-radius: 10px;" @click="toggleHistoryDrawer">
-          历史方案 ({{ historyList.length }})
-        </button>
-      </div>
+      <button 
+        class="action-btn" 
+        :disabled="loading || !userInput.trim()"
+        @click="handleGenerate"
+      >
+        {{ loading ? '正在飞速生成中...' : '开始一键生成' }}
+      </button>
 
       <!-- 异常提示 -->
       <div v-if="errorMsg" style="color: var(--accent-color); font-size: 0.85rem; text-align: center; margin-top: 0.5rem;">
@@ -118,140 +54,37 @@
     <!-- 生成结果卡片 -->
     <section v-if="result || loading" class="glass-card">
       <div class="result-header">
-        <span class="result-title">深刻检讨与反思剖析报告</span>
+        <span class="result-title">生成结果</span>
         <div class="button-actions">
-          <button v-if="result" class="icon-btn" @click="copyText">
-            {{ copied ? '已复制文案' : '复制检讨书全文' }}
+          <button v-if="result && !isImageProject" class="icon-btn" @click="copyText">
+            {{ copied ? '已复制' : '复制文案' }}
           </button>
-          <button v-if="result" class="icon-btn" @click="resetResult">
-            重置
-          </button>
+          <a v-if="result && isImageProject" :href="result" target="_blank" download class="icon-btn" style="text-decoration: none;">
+            查看原图
+          </a>
         </div>
       </div>
 
       <!-- 加载中骨架屏 -->
       <div v-if="loading" class="skeleton">
-        <div class="skeleton-line" style="width: 85%"></div>
+        <div class="skeleton-line" style="width: 80%"></div>
         <div class="skeleton-line" style="width: 95%"></div>
-        <div class="skeleton-line" style="width: 70%"></div>
-        <div class="skeleton-line" style="width: 90%"></div>
         <div class="skeleton-line" style="width: 60%"></div>
       </div>
 
       <!-- 渲染结果 -->
       <div v-else-if="result">
-        <!-- AI 共识打分可视化看板 -->
-        <div v-if="aiScores" class="scores-container" style="margin-bottom: 1.5rem; padding: 1.25rem; background: rgba(0,0,0,0.25); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
-          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 1rem; color: #a5b4fc; display: flex; justify-content: space-between; align-items: center;">
-            <span>AI 检讨诚恳度与整改质量评估看板</span>
-            <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-secondary);">综合质量评估分: {{ getAverageScoreFromMap(aiScores) }} / 100</span>
-          </div>
-          <div class="metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;">
-            <div v-for="metric in metricsList" :key="metric.key" class="metric-item">
-              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.3rem;">
-                <span style="color: var(--text-secondary);">{{ metric.label }}</span>
-                <span style="font-weight: bold; color: var(--accent-color);">{{ aiScores[metric.key] || 90 }} 分</span>
-              </div>
-              <div class="bar-bg" style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
-                <div class="bar-fill" :style="{ width: (aiScores[metric.key] || 90) + '%', background: 'var(--primary-gradient)', height: '100%', borderRadius: '3px', transition: 'width 0.5s ease' }"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="output-content">{{ displayResultText }}</div>
+        <img v-if="isImageProject" :src="result" alt="Generated visual" class="image-output" />
+        <div v-else class="output-content">{{ result }}</div>
       </div>
     </section>
 
-    <!-- 历史记录面板 -->
-    <section v-if="showHistory" class="glass-card" style="margin-top: 1rem;">
-      <div class="result-header">
-        <span class="result-title">本地检讨与反思历史记录</span>
-        <button class="icon-btn" @click="showHistory = false">关闭记录</button>
-      </div>
-
-      <div v-if="historyList.length === 0" style="text-align: center; color: var(--text-secondary); padding: 1.5rem; font-size: 0.85rem;">
-        暂无历史检讨记录，立即开始撰写诚恳检讨书吧！
-      </div>
-
-      <div v-else class="history-grid" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 320px; overflow-y: auto;">
-        <div v-for="item in historyList" :key="item.id" class="history-item" style="padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--card-border);">
-          <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.4rem;">
-            <span>{{ item.timestamp }} · [{{ item.reviewType }} / {{ item.reviewTarget }} / {{ item.wordCount }}]</span>
-            <span style="color: var(--primary-color);">评分: {{ getAverageScore(item) }}</span>
-          </div>
-          <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-primary);">
-            失误经过: {{ item.input }}
-          </div>
-          <div style="display: flex; gap: 0.5rem;">
-            <button class="icon-btn" style="font-size: 0.75rem;" @click="applyHistory(item)">套用场景</button>
-            <button class="icon-btn" style="font-size: 0.75rem;" @click="viewHistoryOutput(item)">查看检讨全文</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 检讨模版 Showcase -->
+    <!-- PC端 Nomads 案例与模版展示 -->
     <NomadsShowcase
+      :app-title="appTitle"
+      :is-image="isImageProject"
       @apply-template="handleApplyTemplate"
     />
-
-    <!-- 深刻检讨书撰写逻辑与语气得体指南 Modal -->
-    <div v-if="showReviewTipsModal" class="modal-overlay" @click.self="showReviewTipsModal = false">
-      <div class="modal-content" style="max-width: 480px;">
-        <h3>深刻检讨书撰写逻辑与语气得体指南</h3>
-        <p style="text-align: left; font-size: 0.825rem; margin-bottom: 1rem; color: var(--text-secondary);">
-          确保检讨书真诚深刻、挽回信任与消除误解的核心准则：
-        </p>
-        <div class="modal-scroll-area" style="text-align: left; font-size: 0.825rem;">
-          <div v-for="(rule, idx) in reviewRules" :key="idx" style="margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-            <div style="color: var(--accent-color); font-weight: bold; margin-bottom: 0.2rem;">{{ rule.title }}</div>
-            <div style="color: var(--text-primary); margin-bottom: 0.2rem;">推荐写法: {{ rule.advice }}</div>
-            <div style="color: var(--text-secondary); font-size: 0.775rem;">忌用语气: {{ rule.avoid }}</div>
-          </div>
-        </div>
-        <button class="modal-btn" style="margin-top: 1rem;" @click="showReviewTipsModal = false">关闭</button>
-      </div>
-    </div>
-
-    <!-- 微信 H5 悬浮分享引导 Modal -->
-    <div v-if="showShareGuide" class="modal-overlay" @click.self="showShareGuide = false">
-      <div class="modal-content">
-        <h3>分享深刻检讨书与反思剖析专家</h3>
-        <p>扫码关注或将链接分享给有公文致歉与纪律检讨需求的朋友与同事。</p>
-        
-        <div class="qr-code-placeholder">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
-            <rect width="100" height="100" fill="white"/>
-            <rect x="5" y="5" width="25" height="25" fill="#110e24"/>
-            <rect x="9" y="9" width="17" height="17" fill="white"/>
-            <rect x="13" y="13" width="9" height="9" fill="#110e24"/>
-            <rect x="70" y="5" width="25" height="25" fill="#110e24"/>
-            <rect x="74" y="9" width="17" height="17" fill="white"/>
-            <rect x="78" y="13" width="9" height="9" fill="#110e24"/>
-            <rect x="5" y="70" width="25" height="25" fill="#110e24"/>
-            <rect x="9" y="74" width="17" height="17" fill="white"/>
-            <rect x="13" y="78" width="9" height="9" fill="#110e24"/>
-            <rect x="35" y="10" width="8" height="8" fill="#110e24"/>
-            <rect x="48" y="5" width="6" height="12" fill="#110e24"/>
-            <rect x="60" y="15" width="5" height="5" fill="#110e24"/>
-            <rect x="35" y="35" width="10" height="10" fill="#110e24"/>
-            <rect x="50" y="45" width="15" height="8" fill="#110e24"/>
-            <rect x="40" y="70" width="8" height="16" fill="#110e24"/>
-            <rect x="55" y="65" width="10" height="10" fill="#110e24"/>
-            <rect x="75" y="40" width="12" height="12" fill="#110e24"/>
-            <rect x="75" y="75" width="15" height="15" fill="#110e24"/>
-            <rect x="45" y="80" width="8" height="8" fill="#110e24"/>
-          </svg>
-        </div>
-
-        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
-          微信号: <span style="color: var(--primary-color); font-weight: bold;">{{ wechatId }}</span>
-        </div>
-
-        <button class="modal-btn" @click="showShareGuide = false">关闭</button>
-      </div>
-    </div>
 
     <!-- 底部隐私与服务条款链接 -->
     <footer class="footer-links">
@@ -268,8 +101,8 @@
       <div class="modal-content">
         <h3>Privacy Policy</h3>
         <div class="modal-text-content modal-scroll-area">
-          <p>我们非常重视您的个人隐私与失误记录保密。您在本应用中输入的失误事件与反思内容仅用于实时大模型生成，系统不会在云端永久存储或泄露您的检讨文本。</p>
-          <p>为了记录您的免费生成额度，本应用会在您的浏览器本地（localStorage）记录试用次数与解锁状态。</p>
+          <p>我们非常重视您的隐私。您在本应用中输入的所有文本或图像提示词仅用于实时大模型生成，我们不会在服务器端进行永久存储或记录。</p>
+          <p>为了记录您的免费额度，本应用会在您的浏览器本地（localStorage）记录试用次数与解锁状态。</p>
         </div>
         <button class="modal-btn" @click="showPrivacy = false">关闭</button>
       </div>
@@ -280,14 +113,14 @@
       <div class="modal-content">
         <h3>Terms of Service</h3>
         <div class="modal-text-content modal-scroll-area">
-          <p>欢迎使用网腾无限 AI 深刻检讨书与反思剖析专家。本工具生成的检讨致歉文本、反思报告及整改措施仅供个人参考指导。</p>
-          <p>请用户结合实际具体情况进行微调补充，确保表态诚恳且符合相关组织纪律规章。</p>
+          <p>欢迎使用我们的 AI 微应用服务。使用本应用即代表您同意并承诺遵守当地有关人工智能生成内容（AIGC）的法律法规。</p>
+          <p>所有生成结果均由 AI 模型计算产生，本应用不对生成内容的准确性、完整性及合法性承担任何直接或间接法律责任。</p>
         </div>
         <button class="modal-btn" @click="showTerms = false">关闭</button>
       </div>
     </div>
 
-    <!-- 联系我们弹窗 -->
+<!-- 联系我们弹窗 -->
     <div v-if="showContact" class="modal-overlay" @click.self="showContact = false">
       <div class="modal-content contact-modal-content">
         <h3>Contact Us</h3>
@@ -327,8 +160,13 @@ import appConfig from './config.json';
 import weixinImg from '../asset/weixin.png';
 import dingtalkImg from '../asset/dingtalk.png';
 
-// 配置参数
-const appTitle = ref(appConfig.title || '网腾无限AI - 深刻检讨书与反思剖析专家');
+onMounted(() => {
+  const savedTheme = localStorage.getItem('portal_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+});
+
+// 读取动态配置文件配置
+const appTitle = ref(appConfig.title || 'AI微应用');
 const wechatId = ref(appConfig.wechatId || 'ai_wuxian_xyz');
 const promptTopic = ref(appConfig.promptTopic || '');
 
@@ -338,15 +176,12 @@ const loading = ref(false);
 const errorMsg = ref('');
 const result = ref('');
 const copied = ref(false);
-
 const showFission = ref(false);
 const showPrivacy = ref(false);
 const showTerms = ref(false);
 const showContact = ref(false);
-const showShareGuide = ref(false);
-const showReviewTipsModal = ref(false);
 
-// 解析 Cookie
+// 解析 Cookie 辅助函数
 const getCookie = (name: string): string | null => {
   const nameEQ = name + "=";
   const ca = document.cookie.split(';');
@@ -358,162 +193,38 @@ const getCookie = (name: string): string | null => {
   return null;
 };
 
-// 用户登录状态
+// SSO 用户状态
 const userToken = ref(getCookie('wuxian_session'));
 const isLoggedIn = computed(() => !!userToken.value);
 const authUsesCount = ref(parseInt(localStorage.getItem('auth_uses') || '0', 10));
 
-// 4 种预设类型
-const reviewTypeOptions = [
-  '职场工作失误与履职尽责检讨',
-  '学校学生违纪与课堂纪律反思',
-  '夫妻与情侣家庭沟通失误致歉',
-  '驾驶违章与公共秩序维护检讨'
-];
-const activeReviewType = ref(reviewTypeOptions[0]);
-
-// 2 组属性：检讨致歉对象 & 字数规格
-const reviewTargetOptions = ['单位领导主管', '学校老师班主任', '伴侣长辈', '公职监管部门'];
-const selectedReviewTarget = ref('单位领导主管');
-
-const wordCountOptions = ['500字精简版', '1000字标准版', '2000字深刻版'];
-const selectedWordCount = ref('1000字标准版');
-
-// 评估指标列表
-const metricsList = [
-  { key: 'attitudeSincerity', label: '态度诚恳真挚度' },
-  { key: 'rootCauseInsight', label: '思想根源剖析度' },
-  { key: 'rectificationActionability', label: '整改措施落地性' },
-  { key: 'toneAppropriateness', label: '语体得体规范度' },
-  { key: 'reassuranceEffect', label: '消除顾虑原谅度' }
-];
-
-const aiScores = ref<Record<string, number> | null>(null);
-
-// 历史记录定义
-interface HistoryItem {
-  id: string;
-  timestamp: string;
-  reviewType: string;
-  reviewTarget: string;
-  wordCount: string;
-  input: string;
-  aiScores: Record<string, number> | null;
-  output: string;
-}
-
-const historyList = ref<HistoryItem[]>([]);
-const showHistory = ref(false);
-
-// 撰写逻辑与语气指南
-const reviewRules = [
-  { 
-    title: '客观陈述与杜绝推诿', 
-    advice: '如实陈述失误事实，从自身主观原因找突破口，展现担当。', 
-    avoid: '切忌寻找客观借口、推卸给他人或环境理由。' 
-  },
-  { 
-    title: '思想根源深刻剖析', 
-    advice: '从纪律意识、敬畏之心、作风建设等深层思想站位剖析。', 
-    avoid: '切忌流于表面泛泛而谈，缺乏对错误本质的认识。' 
-  },
-  { 
-    title: '整改措施具体可行', 
-    advice: '列举可量化、可核查的具体整改计划与长效防范机制。', 
-    avoid: '切忌只喊口号、缺乏实操动作的空洞保证。' 
-  }
-];
-
-// 计算纯结果文本 (剔除打分标签 [JIANTAO_SCORES])
-const displayResultText = computed(() => {
-  if (!result.value) return '';
-  return result.value.replace(/\[JIANTAO_SCORES\][\s\S]*?\[\/JIANTAO_SCORES\]/g, '').trim();
+// 判断当前项目是文本类还是图像/多模态类
+const isImageProject = computed(() => {
+  return appConfig.type === 'image';
 });
 
-// 解析打分标签
-const parseAiScores = (rawText: string) => {
-  const match = rawText.match(/\[JIANTAO_SCORES\](.*?)\[\/JIANTAO_SCORES\]/);
-  if (!match) return null;
-  const content = match[1];
-  const scoresObj: Record<string, number> = {};
-  content.split(',').forEach(item => {
-    const [key, val] = item.split(':');
-    if (key && val) {
-      scoresObj[key.trim()] = parseInt(val.trim(), 10) || 90;
-    }
-  });
-  return Object.keys(scoresObj).length > 0 ? scoresObj : null;
-};
-
-// 计算平均分
-const getAverageScoreFromMap = (scores: Record<string, number>) => {
-  const keys = Object.keys(scores);
-  if (keys.length === 0) return '92.5';
-  const sum = keys.reduce((acc, k) => acc + (scores[k] || 90), 0);
-  return (sum / keys.length).toFixed(1);
-};
-
-const getAverageScore = (item: HistoryItem) => {
-  if (!item.aiScores) return '92.5';
-  return getAverageScoreFromMap(item.aiScores);
-};
-
-// 本地历史记录读取与保存 (jiantao_history_records)
-const loadHistory = () => {
-  try {
-    const raw = localStorage.getItem('jiantao_history_records');
-    historyList.value = raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    historyList.value = [];
+// 根据生成类别提供不同的风格预设
+const styleOptions = computed(() => {
+  if (isImageProject.value) {
+    return [
+      { label: '写真照片', value: '<photography>' },
+      { label: '卡通动漫', value: '<anime>' },
+      { label: '水彩画卷', value: '<watercolor>' },
+      { label: '插画艺术', value: '<illustration>' },
+    ];
+  } else {
+    return [
+      { label: '专业干练', value: '专业干练，结果导向' },
+      { label: '高情商说辞', value: '高情商，委婉，有情调' },
+      { label: '幽默风趣', value: '幽默风趣，形象生动' },
+      { label: '严谨学术', value: '严谨学术，条理清晰' },
+    ];
   }
-};
+});
 
-const saveHistory = () => {
-  localStorage.setItem('jiantao_history_records', JSON.stringify(historyList.value));
-};
+const activeStyle = ref(styleOptions.value[0].value);
 
-const addHistoryRecord = () => {
-  const newItem: HistoryItem = {
-    id: Date.now().toString(),
-    timestamp: new Date().toLocaleString(),
-    reviewType: activeReviewType.value,
-    reviewTarget: selectedReviewTarget.value,
-    wordCount: selectedWordCount.value,
-    input: userInput.value,
-    aiScores: aiScores.value,
-    output: result.value
-  };
-  historyList.value.unshift(newItem);
-  if (historyList.value.length > 20) {
-    historyList.value = historyList.value.slice(0, 20);
-  }
-  saveHistory();
-};
-
-const toggleHistoryDrawer = () => {
-  loadHistory();
-  showHistory.value = !showHistory.value;
-};
-
-const applyHistory = (item: HistoryItem) => {
-  userInput.value = item.input;
-  activeReviewType.value = item.reviewType;
-  if (item.reviewTarget) selectedReviewTarget.value = item.reviewTarget;
-  if (item.wordCount) selectedWordCount.value = item.wordCount;
-  showHistory.value = false;
-  if (inputCardRef.value) {
-    inputCardRef.value.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-};
-
-const viewHistoryOutput = (item: HistoryItem) => {
-  userInput.value = item.input;
-  result.value = item.output;
-  aiScores.value = item.aiScores;
-  showHistory.value = false;
-};
-
-// 限制与额度检测
+// 判断是否达到免费次数上限
 const isLimitReached = computed(() => {
   if (isLoggedIn.value) {
     return authUsesCount.value >= 15;
@@ -523,6 +234,7 @@ const isLimitReached = computed(() => {
   return uses >= 3 && !shared;
 });
 
+// 获取 API 请求端点
 const apiEndpoint = import.meta.env.DEV
   ? '/api/local/generate'
   : (import.meta.env.VITE_API_ENDPOINT || 'https://api.wuxian.xyz/api/v1/generate');
@@ -536,7 +248,6 @@ const handleGenerate = async () => {
   loading.value = true;
   errorMsg.value = '';
   result.value = '';
-  aiScores.value = null;
 
   try {
     const response = await fetch(apiEndpoint, {
@@ -546,9 +257,9 @@ const handleGenerate = async () => {
       },
       credentials: 'include',
       body: JSON.stringify({
-        taskType: 'text',
-        prompt: `任务指导: ${promptTopic.value}\n【检讨类型】: ${activeReviewType.value}\n【检讨致歉对象】: ${selectedReviewTarget.value}\n【字数与规格】: ${selectedWordCount.value}\n【失误经过与主要责任】: ${userInput.value}`,
-        style: activeReviewType.value
+        taskType: isImageProject.value ? 'image' : 'text',
+        prompt: `类型：${promptTopic.value}，要求：${userInput.value}，风格倾向：${activeStyle.value}`,
+        style: activeStyle.value
       })
     });
 
@@ -557,10 +268,7 @@ const handleGenerate = async () => {
       errorMsg.value = data.error;
     } else {
       result.value = data.result;
-      aiScores.value = parseAiScores(data.result);
       
-      addHistoryRecord();
-
       if (isLoggedIn.value) {
         const nextAuthUses = authUsesCount.value + 1;
         localStorage.setItem('auth_uses', nextAuthUses.toString());
@@ -577,16 +285,11 @@ const handleGenerate = async () => {
   }
 };
 
-const handleApplyTemplate = (payload: {
-  prompt: string;
-  reviewType?: string;
-  reviewTarget?: string;
-  wordCount?: string;
-}) => {
+const handleApplyTemplate = (payload: { prompt: string; style?: string }) => {
   userInput.value = payload.prompt;
-  if (payload.reviewType) activeReviewType.value = payload.reviewType;
-  if (payload.reviewTarget) selectedReviewTarget.value = payload.reviewTarget;
-  if (payload.wordCount) selectedWordCount.value = payload.wordCount;
+  if (payload.style) {
+    activeStyle.value = payload.style;
+  }
   if (inputCardRef.value) {
     inputCardRef.value.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -597,14 +300,9 @@ const handleUnlocked = () => {
   handleGenerate();
 };
 
-const resetResult = () => {
-  result.value = '';
-  aiScores.value = null;
-};
-
 const copyText = async () => {
   try {
-    await navigator.clipboard.writeText(displayResultText.value);
+    await navigator.clipboard.writeText(result.value);
     copied.value = true;
     setTimeout(() => {
       copied.value = false;
@@ -613,23 +311,4 @@ const copyText = async () => {
     errorMsg.value = '复制失败，请手动选择复制。';
   }
 };
-
-onMounted(() => {
-  loadHistory();
-});
 </script>
-
-<style scoped>
-.text-link-btn {
-  background: none;
-  border: none;
-  color: #a5b4fc;
-  font-size: 0.775rem;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-.text-link-btn:hover {
-  color: var(--text-primary);
-  text-decoration: underline;
-}
-</style>
